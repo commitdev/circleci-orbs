@@ -1,0 +1,34 @@
+version: 2.1
+ 
+commands:
+  version-tag: 
+    parameters:
+      format:
+        default: 'number-tag'
+        description: |
+          Create a more human readable version tag for your builds. Place this step after checkout on
+          your job and it will create an environment variable $VERSION_TAG to use in later steps.
+          Often used to tag docker images or create github release.
+
+          Options are ['number-tag', 'tag-only', 'number-only']
+          'number-tag: 152-afed12g'
+          'tag-only: afed12g'
+          'number-only: 152'
+        type: enum
+        enum: ['number-tag', 'tag-only', 'number-only']
+    steps:
+      - run:
+          name: Create Version Tag
+          command: |
+            echo 'export COMMIT_NUM=$(git rev-list --count $CIRCLE_SHA1)' >> $BASH_ENV
+            echo 'export COMMIT_TAG=$(git rev-parse --short $CIRCLE_SHA1)' >> $BASH_ENV
+            if [ "<< parameters.format >>" == "number-tag" ];then
+              echo 'export VERSION_TAG="$COMMIT_NUM-$COMMIT_TAG"' >> $BASH_ENV
+            elif [  "<< parameters.format >>" == "tag-only" ];then
+              echo 'export VERSION_TAG="$COMMIT_TAG"' >> $BASH_ENV
+            elif [  "<< parameters.format >>" == "number-only" ];then
+              echo 'export VERSION_TAG="$COMMIT_NUM"' >> $BASH_ENV
+            else
+              echo 'Unsupported format for version-tag.'
+              exit 1
+            fi
