@@ -16,6 +16,7 @@ commands:
           'number-only: 152'
         type: enum
         enum: ['number-tag', 'tag-only', 'number-only']
+    example:
     steps:
       - run:
           name: Create Version Tag
@@ -32,3 +33,7 @@ commands:
               echo 'Unsupported format for version-tag.'
               exit 1
             fi
+
+            echo """Created version tag: VERSION_TAG=${VERSION_TAG}
+
+This will be available in all steps in this job, but not in other jobs as part of the workflow."""
