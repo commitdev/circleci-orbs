@@ -13,7 +13,8 @@ workflows:
       - orb-tools/increment:
           orb-path: src/commit/orb.yml
           orb-ref: commitdev/commit
-          token-variable: "$CIRCLECI_DEV_API_TOKEN"
+          publish-token-variable: "$CIRCLECI_DEV_API_TOKEN"
           segment: patch # Change this for major/minor/patch releases.
           filters:
-            only: master
+            branches:
+              only: master
