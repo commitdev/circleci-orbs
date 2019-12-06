@@ -25,13 +25,13 @@ commands:
             COMMIT_NUM=$(git rev-list --count $CIRCLE_SHA1)
             COMMIT_TAG=$(git rev-parse --short $CIRCLE_SHA1)
             if [ "<< parameters.format >>" = "number-tag" ];then
-              echo 'export VERSION_TAG="$COMMIT_NUM-$COMMIT_TAG"' >> $BASH_ENV
+              echo "export VERSION_TAG=\"$COMMIT_NUM-$COMMIT_TAG\"" >> $BASH_ENV
             elif [  "<< parameters.format >>" = "tag-only" ];then
-              echo 'export VERSION_TAG="$COMMIT_TAG"' >> $BASH_ENV
+              echo "export VERSION_TAG=\"$COMMIT_TAG\"" >> $BASH_ENV
             elif [  "<< parameters.format >>" = "number-only" ];then
-              echo 'export VERSION_TAG="$COMMIT_NUM"' >> $BASH_ENV
+              echo "export VERSION_TAG=\"$COMMIT_NUM\"" >> $BASH_ENV
             else
-              echo 'Unsupported format for version-tag.'
+              echo "Unsupported format for version-tag."
               exit 1
             fi
 
