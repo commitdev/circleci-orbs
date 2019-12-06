@@ -22,11 +22,11 @@ commands:
           command: |
             echo 'export COMMIT_NUM=$(git rev-list --count $CIRCLE_SHA1)' >> $BASH_ENV
             echo 'export COMMIT_TAG=$(git rev-parse --short $CIRCLE_SHA1)' >> $BASH_ENV
-            if [ "<< parameters.format >>" == "number-tag" ];then
+            if [ "<< parameters.format >>" = "number-tag" ];then
               echo 'export VERSION_TAG="$COMMIT_NUM-$COMMIT_TAG"' >> $BASH_ENV
-            elif [  "<< parameters.format >>" == "tag-only" ];then
+            elif [  "<< parameters.format >>" = "tag-only" ];then
               echo 'export VERSION_TAG="$COMMIT_TAG"' >> $BASH_ENV
-            elif [  "<< parameters.format >>" == "number-only" ];then
+            elif [  "<< parameters.format >>" = "number-only" ];then
               echo 'export VERSION_TAG="$COMMIT_NUM"' >> $BASH_ENV
             else
               echo 'Unsupported format for version-tag.'

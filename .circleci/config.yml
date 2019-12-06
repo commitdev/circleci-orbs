@@ -6,7 +6,7 @@ workflows:
   publish:
     jobs:
       - orb-tools/publish:
-          orb-path: src/commit0/orb.yml
-          orb-ref: commitdev/circleci-orbs@dev:${CIRCLE_BRANCH}
+          orb-path: src/commit/orb.yml
+          orb-ref: commitdev/circleci-orbs@dev:0.0.1
           publish-token-variable: "$CIRCLECI_DEV_API_TOKEN"
           validate: true
