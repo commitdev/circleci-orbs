@@ -36,3 +36,5 @@ commands:
             fi
 
             echo "Created version tag: VERSION_TAG=${VERSION_TAG}\n\nThis will be available in all steps in this job, but not in other jobs as part of the workflow."
+description: |
+  Common commands used by Commit in our build pipelines. See this orb's source: https://github.com/commitdev/circleci-orbs
