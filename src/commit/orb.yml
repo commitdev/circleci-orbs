@@ -1,5 +1,7 @@
+# This code is licensed from CircleCI to the user under the MIT license. See
+# https://circleci.com/orbs/registry/licensing for details.
 version: 2.1
- 
+
 commands:
   version-tag: 
     parameters:
@@ -16,7 +18,6 @@ commands:
           'number-only: 152'
         type: enum
         enum: ['number-tag', 'tag-only', 'number-only']
-    example:
     steps:
       - run:
           name: Create Version Tag
@@ -34,6 +35,4 @@ commands:
               exit 1
             fi
 
-            echo """Created version tag: VERSION_TAG=${VERSION_TAG}
-
-This will be available in all steps in this job, but not in other jobs as part of the workflow."""
+            echo "Created version tag: VERSION_TAG=${VERSION_TAG}\n\nThis will be available in all steps in this job, but not in other jobs as part of the workflow."
