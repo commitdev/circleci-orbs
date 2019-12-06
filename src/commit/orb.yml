@@ -22,8 +22,8 @@ commands:
       - run:
           name: Create Version Tag
           command: |
-            echo 'export COMMIT_NUM=$(git rev-list --count $CIRCLE_SHA1)' >> $BASH_ENV
-            echo 'export COMMIT_TAG=$(git rev-parse --short $CIRCLE_SHA1)' >> $BASH_ENV
+            COMMIT_NUM=$(git rev-list --count $CIRCLE_SHA1)
+            COMMIT_TAG=$(git rev-parse --short $CIRCLE_SHA1)
             if [ "<< parameters.format >>" = "number-tag" ];then
               echo 'export VERSION_TAG="$COMMIT_NUM-$COMMIT_TAG"' >> $BASH_ENV
             elif [  "<< parameters.format >>" = "tag-only" ];then
