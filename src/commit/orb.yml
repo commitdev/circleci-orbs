@@ -1,0 +1,40 @@
+# This code is licensed from CircleCI to the user under the MIT license. See
+# https://circleci.com/orbs/registry/licensing for details.
+version: 2.1
+
+commands:
+  version-tag: 
+    parameters:
+      format:
+        default: 'number-tag'
+        description: |
+          Create a more human readable version tag for your builds. Place this step after checkout on
+          your job and it will create an environment variable $VERSION_TAG to use in later steps.
+          Often used to tag docker images or create github release.
+
+          Options are ['number-tag', 'tag-only', 'number-only']
+          'number-tag: 152-afed12g'
+          'tag-only: afed12g'
+          'number-only: 152'
+        type: enum
+        enum: ['number-tag', 'tag-only', 'number-only']
+    steps:
+      - run:
+          name: Create Version Tag
+          command: |
+            COMMIT_NUM=$(git rev-list --count $CIRCLE_SHA1)
+            COMMIT_TAG=$(git rev-parse --short $CIRCLE_SHA1)
+            if [ "<< parameters.format >>" = "number-tag" ];then
+              echo "export VERSION_TAG=\"$COMMIT_NUM-$COMMIT_TAG\"" >> $BASH_ENV
+            elif [  "<< parameters.format >>" = "tag-only" ];then
+              echo "export VERSION_TAG=\"$COMMIT_TAG\"" >> $BASH_ENV
+            elif [  "<< parameters.format >>" = "number-only" ];then
+              echo "export VERSION_TAG=\"$COMMIT_NUM\"" >> $BASH_ENV
+            else
+              echo "Unsupported format for version-tag."
+              exit 1
+            fi
+
+            echo "Created version tag: VERSION_TAG=${VERSION_TAG}\n\nThis will be available in all steps in this job, but not in other jobs as part of the workflow."
+description: |
+  Common commands used by Commit in our build pipelines. See this orb's source: https://github.com/commitdev/circleci-orbs

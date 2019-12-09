@@ -1,0 +1,20 @@
+version: 2.1
+orbs:
+  orb-tools: circleci/orb-tools@2.0.0
+
+workflows:
+  publish:
+    jobs:
+      - orb-tools/publish:
+          orb-path: src/commit/orb.yml
+          orb-ref: commitdev/commit@dev:$CIRCLE_BRANCH
+          publish-token-variable: "$CIRCLECI_DEV_API_TOKEN"
+          validate: true
+      - orb-tools/increment:
+          orb-path: src/commit/orb.yml
+          orb-ref: commitdev/commit
+          publish-token-variable: "$CIRCLECI_DEV_API_TOKEN"
+          segment: patch # Change this for major/minor/patch releases.
+          filters:
+            branches:
+              only: master
