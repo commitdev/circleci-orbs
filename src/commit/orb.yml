@@ -19,7 +19,7 @@ commands:
         type: enum
         enum: ['number-tag', 'tag-only', 'number-only']
       workspace:
-        default: /tmp/workspace/
+        default: /tmp/workspace
         description: |
           Specify a custom workspace for this script to use. If you're using another workspace throughout your
           jobs you can add it here to. This is where we will save the file with the version-tag to access in
@@ -33,7 +33,7 @@ commands:
         type: string
     steps:
       - attach_workspace:
-          at: /tmp/workspace
+          at: << parameters.workspace >>
       - run:
           name: Create Version Tag
           command: |
@@ -43,11 +43,11 @@ commands:
             else
               COMMIT_TAG=$(git rev-parse --short $CIRCLE_SHA1)
               if [ "<< parameters.format >>" = "number-tag" ];then
-                VERSION_TAG=\"$CIRCLE_BUILD_NUM-$COMMIT_TAG\"
+                VERSION_TAG="$CIRCLE_BUILD_NUM-$COMMIT_TAG"
               elif [  "<< parameters.format >>" = "tag-only" ];then
-                VERSION_TAG=\"$COMMIT_TAG\"
+                VERSION_TAG="$COMMIT_TAG"
               elif [  "<< parameters.format >>" = "number-only" ];then
-                VERSION_TAG=\"$CIRCLE_BUILD_NUM\"
+                VERSION_TAG="$CIRCLE_BUILD_NUM"
               else
                 echo "Unsupported format for version-tag."
                 exit 1
