@@ -33,7 +33,7 @@ commands:
         type: string
     steps:
       - attach_workspace:
-        at: /tmp/workspace
+          at: /tmp/workspace
       - run:
           name: Create Version Tag
           command: |
@@ -57,17 +57,15 @@ commands:
               echo "export VERSION_TAG=\"$CIRCLE_BUILD_NUM-$COMMIT_TAG\"" >> $BASH_ENV
             fi
       - persist_to_workspace:
-            root: << parameters.workspace >>
-            paths:
-              - << parameters.versionfile >>
+          root: << parameters.workspace >>
+          paths:
+            - << parameters.versionfile >>
       - run:
           name: Print Version
           command: |
             echo "Created version tag: VERSION_TAG=${VERSION_TAG}
-
             This will be available in all steps in this job,
             but not in other jobs as part of the workflow. 
-
             To use in other jobs, add the version-tag command to them."
 description: |
   Common commands used by Commit in our build pipelines. See this orb's source: https://github.com/commitdev/circleci-orbs
