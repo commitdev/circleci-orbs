@@ -67,5 +67,147 @@ commands:
             This will be available in all steps in this job,
             but not in other jobs as part of the workflow. 
             To use in other jobs, add the version-tag command to them."
+  slack-message-user:
+    description: | 
+      Sends a message to the user who's build it is, if possible. Github email must match Slack email for it to work.
+      Requires a slack bot with access to the "user:read.email" bot token scope.
+
+      Scopes Required:
+       - user:read
+       - user:read.email
+       - chat:write
+    parameters:
+      bot-token:
+        default: ${SLACK_BOT_TOKEN}
+        description: |
+          Enter either your bot token here or use the CircleCI UI to add
+          your token under the 'SLACK_BOT_TOKEN' env var. https://api.slack.com/docs/token-types#bot
+        type: string
+      channel:
+        description: |
+          Channel to send default branch messages to, or messages where email lookup fails.
+        type: string
+      message:
+        default: Your CircleCI build ${BUILD_RESULT}.
+        description: |
+          Enter custom message to describe why you are notifying the user.
+        type: string
+      default_branch:
+        default: master
+        description: |
+          Default branch builds send to the channel and @mention the user for visibility. 
+          Leave blank to disable this.
+        type: string
+      include_job_number_field:
+        default: false
+        description: |
+          Whether or not to include the Job Number field in the message
+        type: boolean
+      include_project_field:
+        default: false
+        description: |
+          Whether or not to include the Project field in the message
+        type: boolean
+    steps:
+    - run:
+        name: Check Dependencies
+        command: |
+          if [ ! -x /bin/bash ]; then
+            echo Bash not installed.
+            exit 1
+          fi
+          if [ -z "<< parameters.bot-token >>" ]; then
+            echo "NO SLACK BOT TOKEN SET"
+            echo "Please input your SLACK_BOT_TOKEN value either in the settings for this project, or as a parameter for this orb."
+            echo
+            echo "For information on creating a slack bot, see the documentation: https://api.slack.com/apps"
+            exit 1
+          fi
+    - run:
+        when: on_success
+        command: echo "export BUILD_RESULT=success" >> $BASH_ENV
+    - run:
+        when: on_failure
+        command: echo "export BUILD_RESULT=fail" >> $BASH_ENV
+    - run:
+        name: Send Slack message to user
+        shell: /bin/bash
+        command: |
+          SLACK_API_URL="https://slack.com/api/"
+
+          # Only support Github for now.
+          VCS="gh"
+          VCS_URL="github.com"
+          AUTHOR_EMAIL=$(git log --format='%ae' $CIRCLE_SHA1)
+          MENTION=""
+
+          FAIL_COLOUR="#ae2d2d"
+          PASS_COLOUR="#38ae2d"
+
+          if [ "$BUILD_RESULT" == "success" ]; then
+            COLOUR=${PASS_COLOUR}
+          elif
+            COLOUR=${FAIL_COLOUR}
+          fi
+
+          LOOKUP_RESULT=$(curl -s "${SLACK_API_URL}/users.lookupByEmail?token=${SLACK_BOT_TOKEN}&email=${AUTHOR_EMAIL}")
+          SUCCESS=$(echo "$LOOKUP_RESULT" | jq ".ok")
+          if [ "$SUCCESS" == "true" && "$CIRCLE_BRANCH" != "<< parameters.default_branch >>"]; then
+            USER_ID=$(echo "$LOOKUP_RESULT" | jq -r ".user.id")
+            CHANNEL=$USER_ID
+            MENTION="@${USER_ID} "
+          else
+            echo "Couldn't find user with the email \"${AUTHOR_EMAIL}\". Your email in Github must match your email in slack."
+            CHANNEL=<< parameters.channel >>
+          fi
+
+          echo "Sending message to ${CHANNEL}"
+          SEND_RESULT=$(curl -s -X POST -H 'Content-type: application/x-www-form-urlencoded' --data \
+          "token=${SLACK_BOT_TOKEN}&\
+          channel=${CHANNEL}&\
+          text=${MENTION}<< parameters.message >>&\
+          attachments=[{\
+              \"fallback\": \"Your CircleCI build ${BUILD_RESULT}. ${CIRCLE_BUILD_URL}\", \
+              \"author_name\": \"${CIRCLE_USERNAME}\", \
+              \"author_link\": \"https://${VCS_URL}/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/commit/${CIRCLE_SHA1}\", \
+              \"title\": \"CircleCI Build\", \
+              \"title_link\": \"${CIRCLE_BUILD_URL}\", \
+              \"fields\": [ \
+                <<# parameters.include_project_field >>
+                { \
+                  \"title\": \"Project\", \
+                  \"value\": \"${CIRCLE_PROJECT_REPONAME}\", \
+                  \"short\": true \
+                }, \
+                <</ parameters.include_project_field >>
+                <<# parameters.include_job_number_field >>
+                { \
+                  \"title\": \"Job Number\", \
+                  \"value\": \"${CIRCLE_BUILD_NUM}\", \
+                  \"short\": true \
+                }, \
+                <</ parameters.include_job_number_field >>
+                { \
+                  \"title\": \"Branch\", \
+                  \"value\": \"${CIRCLE_BRANCH}\", \
+                  \"short\": true \
+                }, \
+                { \
+                  \"title\": \"Stage\", \
+                  \"value\": \"${CIRCLE_STAGE}\", \
+                  \"short\": true \
+                } \
+              ], \
+              \"color\": \"${COLOUR}\", \
+              \"footer\": \"Commit Orb\", \
+              \"footer_icon\": \"https://commit.dev/favicon.ico\", \
+            }]" \
+          "${SLACK_API_URL}/chat.postMessage?token=${SLACK_BOT_TOKEN}")
+          SUCCESS=$(echo "$SEND_RESULT" | jq ".ok")
+          if [ "$SUCCESS" == "true" ]; then
+            echo "Message sent to user."
+          else
+            echo "Error sending message to user. ${SEND_RESULT}"
+          fi
 description: |
   Common commands used by Commit in our build pipelines. See this orb's source: https://github.com/commitdev/circleci-orbs
