@@ -147,7 +147,7 @@ commands:
 
           if [ "$BUILD_RESULT" == "success" ]; then
             COLOUR=${PASS_COLOUR}
-          elif
+          else
             COLOUR=${FAIL_COLOUR}
           fi
 
