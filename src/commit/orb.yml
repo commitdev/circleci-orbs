@@ -130,6 +130,7 @@ commands:
         when: on_fail
         command: echo "export BUILD_RESULT=fail" >> $BASH_ENV
     - run:
+        when: always
         name: Send Slack message to user
         shell: /bin/bash
         command: |
