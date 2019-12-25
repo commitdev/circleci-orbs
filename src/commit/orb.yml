@@ -67,7 +67,7 @@ commands:
             This will be available in all steps in this job,
             but not in other jobs as part of the workflow. 
             To use in other jobs, add the version-tag command to them."
-  slack-message-user:
+  slack-message:
     description: | 
       Sends a message to the user who's build it is, if possible. Github email must match Slack email for it to work.
       Requires a slack bot with access to the "user:read.email" bot token scope.
@@ -127,7 +127,7 @@ commands:
         when: on_success
         command: echo "export BUILD_RESULT=success" >> $BASH_ENV
     - run:
-        when: on_failure
+        when: on_fail
         command: echo "export BUILD_RESULT=fail" >> $BASH_ENV
     - run:
         name: Send Slack message to user
