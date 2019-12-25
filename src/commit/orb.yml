@@ -139,7 +139,7 @@ commands:
           # Only support Github for now.
           VCS="gh"
           VCS_URL="github.com"
-          AUTHOR_EMAIL=$(git log --format='%ae' $CIRCLE_SHA1)
+          AUTHOR_EMAIL=$(git log -n1 --format='%ae' $CIRCLE_SHA1)
           MENTION=""
 
           FAIL_COLOUR="#ae2d2d"
