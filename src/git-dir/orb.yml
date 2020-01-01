@@ -1,0 +1,26 @@
+# This code is licensed from CircleCI to the user under the MIT license. See
+# https://circleci.com/orbs/registry/licensing for details.
+version: 2.1
+
+commands:
+  download:
+    parameters:
+      token:
+        default: '$GITHUB_API_TOKEN'
+        description: |
+          Git
+      directory:
+        default: '.circleci'
+        description: |
+          Subdirectory of the git repository you want to download. Defaults to just getting the .circleci folder.
+        type: string
+      only:
+        default: '*'
+        description: |
+          Filter based on regex the files you want to download.
+        type: string
+    steps:
+      - run:
+        command: |
+          curl -H 'Authorization: Bearer << parameters.token >>' \
+            https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/contents/<< parameters.directory >>

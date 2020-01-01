@@ -3,70 +3,6 @@
 version: 2.1
 
 commands:
-  version-tag:
-    parameters:
-      format:
-        default: 'number-tag'
-        description: |
-          Create a more human readable version tag for your builds. Place this step after checkout on
-          your job and it will create an environment variable $VERSION_TAG to use in later steps.
-          Often used to tag docker images or create github release.
-
-          Options are ['number-tag', 'tag-only', 'number-only']
-          'number-tag: 152-afed12g'
-          'tag-only: afed12g'
-          'number-only: 152'
-        type: enum
-        enum: ['number-tag', 'tag-only', 'number-only']
-      workspace:
-        default: /tmp/workspace
-        description: |
-          Specify a custom workspace for this script to use. If you're using another workspace throughout your
-          jobs you can add it here to. This is where we will save the file with the version-tag to access in
-          other jobs in your workflow.
-        type: string
-      versionfile:
-        default: version.txt
-        description: |
-          Plain-text file in which the version-tag is stored. To access this in other steps, attach the workspace
-          and cat the contents of the file where you need it. E.g. export VERSION_TAG=$(cat version.txt)
-        type: string
-    steps:
-      - attach_workspace:
-          at: << parameters.workspace >>
-      - run:
-          name: Create Version Tag
-          command: |
-            if [ -f << parameters.workspace >>/<< parameters.versionfile >> ]; then
-              echo "<< parameters.versionfile >> already present in your workspace, setting enviroment variable."
-              echo "export VERSION_TAG=$(cat << parameters.workspace >>/<< parameters.versionfile >>)" >> $BASH_ENV
-            else
-              COMMIT_TAG=$(git rev-parse --short $CIRCLE_SHA1)
-              if [ "<< parameters.format >>" = "number-tag" ];then
-                VERSION_TAG="$CIRCLE_BUILD_NUM-$COMMIT_TAG"
-              elif [  "<< parameters.format >>" = "tag-only" ];then
-                VERSION_TAG="$COMMIT_TAG"
-              elif [  "<< parameters.format >>" = "number-only" ];then
-                VERSION_TAG="$CIRCLE_BUILD_NUM"
-              else
-                echo "Unsupported format for version-tag."
-                exit 1
-              fi
-              echo "Saving version-tag to << parameters.workspace >>/<< parameters.versionfile >>"
-              echo "$VERSION_TAG" >> << parameters.workspace >>/<< parameters.versionfile >>
-              echo "export VERSION_TAG=\"$CIRCLE_BUILD_NUM-$COMMIT_TAG\"" >> $BASH_ENV
-            fi
-      - persist_to_workspace:
-          root: << parameters.workspace >>
-          paths:
-            - << parameters.versionfile >>
-      - run:
-          name: Print Version
-          command: |
-            echo "Created version tag: VERSION_TAG=${VERSION_TAG}
-            This will be available in all steps in this job,
-            but not in other jobs as part of the workflow. 
-            To use in other jobs, add the version-tag command to them."
   slack-message:
     description: | 
       Sends a message to the user who's build it is, if possible. Github email must match Slack email for it to work.
@@ -211,4 +147,7 @@ commands:
             echo "Error sending message to user. ${SEND_RESULT}"
           fi
 description: |
-  Common commands used by Commit in our build pipelines. See this orb's source: https://github.com/commitdev/circleci-orbs
+  Extended Slack message that does a lookup of the user by email and messages directly.
+  Requires a Slack Bot and Token to use.
+
+  See this orb's source: https://github.com/commitdev/circleci-orbs
