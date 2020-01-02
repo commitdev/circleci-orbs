@@ -8,7 +8,7 @@ commands:
       token:
         default: '$GITHUB_API_TOKEN'
         description: |
-          Git
+          Github personal access token
       directory:
         default: '.circleci'
         description: |
@@ -22,5 +22,15 @@ commands:
     steps:
       - run:
         command: |
-          curl -H 'Authorization: Bearer << parameters.token >>' \
-            https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/contents/<< parameters.directory >>
+          DATA=$(curl -s -H "Authorization: Bearer << parameters.token >>" \
+            "https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/contents/<< parameters.directory >>")
+
+          echo "$DATA" | jq -c '.[]' | while read  -r file; do
+            path=$(echo "$file" | jq -r '.path')
+            download_url=$(echo "$file" | jq -r '.download_url')
+            echo "Downloading: $path"
+            
+            curl -s --create-dirs \
+                -H "Authorization: Bearer << parameters.directory >>" \
+                -o "$path" "$download_url"
+          done

@@ -2,19 +2,133 @@ version: 2.1
 orbs:
   orb-tools: circleci/orb-tools@2.0.0
 
+variables:
+  - &workspace /home/commitdev/
+
+parameters: &parameters
+  orb-path:
+    default: orb.yml
+    description: Path to an orb file.
+    type: string
+  orb-ref:
+    description: A versionless orb-ref in the form <namespace>/<orb-name>
+    type: string
+  token-variable:
+    default: CIRCLECI_DEV_API_TOKEN
+    description: >
+      Name of env var containing your token. Pass this as a raw string such as
+      ORB_PUBLISHING_TOKEN. Do not paste the actual token into your
+      configuration. If omitted it's assumed the CLI has already been setup with
+      a valid token.
+    type: env_var_name
+
+jobs:
+  checkout:
+    executor: cli/default
+    working_directory: *workspace
+    steps:
+      - checkout
+    - persist_to_workspace:
+      root: *workspace
+      paths:
+        - .
+
+  publish-branch:
+    executor: cli/default
+    working_directory: *workspace
+    parameters: *parameters
+    steps:
+      - attach_workspace:
+        at: *workspace
+      - run:
+        name: Validate << parameters.orb-path >>
+        command: circleci orb validate << parameters.orb-path >>
+      - run:
+        name: Publish << parameters.orb-ref >>
+        command: |
+          # Check if any changes in the orb.yml
+          if [ $(./check-updated.sh << parameters.orb-ref >>) == "true" ]; then
+
+            # Publish the orb to branch
+            circleci orb publish \
+              << parameters.orb-path >> \
+              << parameters.orb-ref >>@dev:$CIRCLE_BRANCH \
+              --token $<< parameters.token-variable >>
+          else
+            echo "No changes, skipping orb publish."
+          fi
+
+  publish:
+    executor: cli/default
+    working_directory: *workspace
+    parameters: *parameters
+    steps:
+      - attach_workspace:
+         at: *workspace
+      - run:
+        name: Validate << parameters.orb-path >>
+        command: circleci orb validate << parameters.orb-path >>
+      - run:
+        name: Publish << parameters.orb-ref >>
+        command: |
+          # Check if any changes in the orb.yml
+          if [ $(./check-updated.sh << parameters.orb-ref >>) == "true" ]; then
+            
+            # Check if version number is updated
+            ./.circleci/check-version << parameters.orb-ref >>
+            
+            # Publish the orb
+            circleci orb publish << parameters.orb-path >> <<
+            parameters.orb-ref >>@$(cat version.txt)
+            <<# parameters.token-variable >>
+              --token $<< parameters.token-variable >>
+            <</ parameters.token-variable >>
+          else
+            echo "No changes, skipping orb publish."
+          fi
+
 workflows:
   publish:
     jobs:
-      - orb-tools/publish:
-          orb-path: src/commit/orb.yml
-          orb-ref: commitdev/commit@dev:$CIRCLE_BRANCH
-          publish-token-variable: "$CIRCLECI_DEV_API_TOKEN"
-          validate: true
-      - orb-tools/increment:
-          orb-path: src/commit/orb.yml
-          orb-ref: commitdev/commit
-          publish-token-variable: "$CIRCLECI_DEV_API_TOKEN"
-          segment: patch # Change this for major/minor/patch releases.
+      - publish-branch:
+          name: Git Dir Branch
+          orb-path: src/commitdev/git-dir/orb.yml
+          orb-ref: commitdev/git-dir
+          filters:
+            branches:
+              ignore: master
+      - publish:
+          name: Git Dir
+          orb-path: src/commitdev/git-dir/orb.yml
+          orb-ref: commitdev/git-dir
+          filters:
+            branches:
+              only: master
+      - publish-branch:
+          name: Slack Message Branch
+          orb-path: src/commitdev/slack-message/orb.yml
+          orb-ref: commitdev/slack-message
+          filters:
+            branches:
+              ignore: master
+      - publish:
+          name: Slack Message
+          orb-path: src/commitdev/slack-message/orb.yml
+          orb-ref: commitdev/slack-message
+          filters:
+            branches:
+              only: master
+      - publish-branch:
+          name: Version Tag Branch
+          orb-path: src/commitdev/version-tag/orb.yml
+          orb-ref: commitdev/version-tag
+          filters:
+            branches:
+              ignore: master
+      - publish:
+          name: Version Tag
+          orb-path: src/commitdev/version-tag/orb.yml
+          orb-ref: commitdev/version-tag
           filters:
             branches:
               only: master
