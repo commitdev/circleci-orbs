@@ -6,9 +6,10 @@ commands:
   download:
     parameters:
       token:
-        default: '$GITHUB_API_TOKEN'
+        default: GITHUB_API_TOKEN
         description: |
           Github personal access token
+        type: env_var_name
       directory:
         default: '.circleci'
         description: |
@@ -34,3 +35,6 @@ commands:
                 -H "Authorization: Bearer << parameters.directory >>" \
                 -o "$path" "$download_url"
           done
+description: |
+  Commands to only download a subfolder of git repo instead of a full clone. 
+  Used when pulling deployment scripts without needing the entire git history.

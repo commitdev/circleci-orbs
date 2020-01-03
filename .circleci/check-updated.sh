@@ -9,8 +9,7 @@ if [ "$ORB_NAME" == "" ]; then
     exit 1
 fi
 
-ORBS=$(git --no-pager diff --name-only --relative="src/" \
-    "$(git rev-parse HEAD)" "$(git rev-parse origin/master)" | \
+ORBS=$(git --no-pager diff --name-only --relative="src/" HEAD^ HEAD | \
     grep -E '^commitdev\/(.*)\/orb\.yml$' | \
     cut -d / -f 2)
 
