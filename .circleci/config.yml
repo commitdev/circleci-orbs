@@ -47,17 +47,11 @@ jobs:
       - run:
           name: Publish << parameters.orb-ref >>
           command: |
-            # Check if any changes in the orb.yml
-            if [ $(./.circleci/check-updated.sh << parameters.orb-ref >>) == "true" ]; then
-
-              # Publish the orb to branch
-              circleci orb publish \
-                << parameters.orb-path >> \
-                << parameters.orb-ref >>@dev:$CIRCLE_BRANCH \
-                --token $<< parameters.token-variable >>
-            else
-              echo "No changes, skipping orb publish."
-            fi
+            # Publish the orb to branch
+            circleci orb publish \
+              << parameters.orb-path >> \
+              << parameters.orb-ref >>@dev:$CIRCLE_BRANCH \
+              --token $<< parameters.token-variable >>
 
   publish:
     executor: cli/default
@@ -72,18 +66,11 @@ jobs:
       - run:
           name: Publish << parameters.orb-ref >>
           command: |
-            # Check if any changes in the orb.yml
-            if [ $(./.circleci/check-updated.sh << parameters.orb-ref >>) == "true" ]; then
-              
-              # Check if version number is updated
-              ./.circleci/check-version << parameters.orb-ref >>
-              
-              # Publish the orb
-              circleci orb publish << parameters.orb-path >> <<
-              parameters.orb-ref >>@$(cat version.txt)
-              <<# parameters.token-variable >>
+            if [ $(./.circleci/check-version << parameters.orb-ref >>) == "updated" ]; then
+              circleci orb publish \
+                << parameters.orb-path >> \
+                << parameters.orb-ref >>@$(cat version.txt) \
                 --token $<< parameters.token-variable >>
-              <</ parameters.token-variable >>
             else
               echo "No changes, skipping orb publish."
             fi
