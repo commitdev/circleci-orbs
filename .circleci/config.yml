@@ -7,10 +7,6 @@ variables:
   - &workspace /tmp/commitdev/
 
 params: &parameters
-  orb-path:
-    default: orb.yml
-    description: Path to an orb file.
-    type: string
   orb-ref:
     description: A versionless orb-ref in the form <namespace>/<orb-name>
     type: string
@@ -42,17 +38,17 @@ jobs:
       - attach_workspace:
           at: *workspace
       - run:
-          name: Validate << parameters.orb-path >>
-          command: circleci orb validate << parameters.orb-path >>
+          name: Validate src/<< parameters.orb-ref >>/orb.yml
+          command: circleci orb validate src/<< parameters.orb-ref >>/orb.yml
       - run:
           name: Publish << parameters.orb-ref >>
           command: |
             # Create namespace if needed
-            ./.circleci/check-version << parameters.orb-ref >>
+            ./.circleci/check-version.sh << parameters.orb-ref >>
 
             # Publish the orb to branch
             circleci orb publish \
-              << parameters.orb-path >> \
+              src/<< parameters.orb-ref >>/orb.yml \
               << parameters.orb-ref >>@dev:$CIRCLE_BRANCH \
               --token $<< parameters.token-variable >>
 
@@ -64,15 +60,15 @@ jobs:
       - attach_workspace:
          at: *workspace
       - run:
-          name: Validate << parameters.orb-path >>
-          command: circleci orb validate << parameters.orb-path >>
+          name: Validate src/<< parameters.orb-ref >>/orb.yml
+          command: circleci orb validate src/<< parameters.orb-ref >>/orb.yml
       - run:
           name: Publish << parameters.orb-ref >>
           command: |
-            if [ $(./.circleci/check-version << parameters.orb-ref >>) == "updated" ]; then
+            if [ $(./.circleci/check-version.sh << parameters.orb-ref >>) == "updated" ]; then
               circleci orb publish \
-                << parameters.orb-path >> \
-                << parameters.orb-ref >>@$(cat version.txt) \
+                src/<< parameters.orb-ref >>/orb.yml \
+                << parameters.orb-ref >>@$(cat src/<< parameters.orb-ref >>/version.txt) \
                 --token $<< parameters.token-variable >>
             else
               echo "No changes, skipping orb publish."
@@ -84,7 +80,6 @@ workflows:
       - checkout
       - publish-branch:
           name: Git Dir Branch
-          orb-path: src/commitdev/git-dir/orb.yml
           orb-ref: commitdev/git-dir
           requires:
             - checkout
@@ -93,7 +88,6 @@ workflows:
               ignore: master
       - publish:
           name: Git Dir
-          orb-path: src/commitdev/git-dir/orb.yml
           orb-ref: commitdev/git-dir
           requires:
             - checkout
@@ -102,7 +96,6 @@ workflows:
               only: master
       - publish-branch:
           name: Slack Message Branch
-          orb-path: src/commitdev/slack-message/orb.yml
           orb-ref: commitdev/slack-message
           requires:
             - checkout
@@ -111,7 +104,6 @@ workflows:
               ignore: master
       - publish:
           name: Slack Message
-          orb-path: src/commitdev/slack-message/orb.yml
           orb-ref: commitdev/slack-message
           requires:
             - checkout
@@ -120,7 +112,6 @@ workflows:
               only: master
       - publish-branch:
           name: Version Tag Branch
-          orb-path: src/commitdev/version-tag/orb.yml
           orb-ref: commitdev/version-tag
           requires:
             - checkout
@@ -129,7 +120,6 @@ workflows:
               ignore: master
       - publish:
           name: Version Tag
-          orb-path: src/commitdev/version-tag/orb.yml
           orb-ref: commitdev/version-tag
           requires:
             - checkout
