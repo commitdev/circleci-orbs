@@ -22,9 +22,3 @@ do
 done
 
 echo "No changes found for orb: $ORB_NAME"
-
-if [ "$(./.circleci/check-updated.sh commitdev/commit)" == "true" ]; then
-    echo "good"
-else
-    echo "No changes"
-fi
