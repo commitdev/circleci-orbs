@@ -9,8 +9,9 @@ if [ "$ORB_NAME" == "" ]; then
     exit 1
 fi
 
-ORBS=$(git diff-tree --no-commit-id --name-only -r "$CIRCLE_SHA1" | \
-    grep -E '^src\/(.*)\/orb\.yml$' | \
+ORBS=$(git --no-pager diff --name-only --relative="src/" \
+    "$(git rev-parse HEAD)" "$(git rev-parse origin/master)" | \
+    grep -E '^commitdev\/(.*)\/orb\.yml$' | \
     cut -d / -f 2)
 
 for orb in $ORBS
