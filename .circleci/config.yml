@@ -1,11 +1,12 @@
 version: 2.1
 orbs:
   orb-tools: circleci/orb-tools@2.0.0
+  cli: circleci/circleci-cli@0.1.6
 
 variables:
   - &workspace /home/commitdev/
 
-parameters: &parameters
+params: &parameters
   orb-path:
     default: orb.yml
     description: Path to an orb file.
@@ -15,7 +16,7 @@ parameters: &parameters
     type: string
   token-variable:
     default: CIRCLECI_DEV_API_TOKEN
-    description: >
+    description: |
       Name of env var containing your token. Pass this as a raw string such as
       ORB_PUBLISHING_TOKEN. Do not paste the actual token into your
       configuration. If omitted it's assumed the CLI has already been setup with
@@ -28,10 +29,10 @@ jobs:
     working_directory: *workspace
     steps:
       - checkout
-    - persist_to_workspace:
-      root: *workspace
-      paths:
-        - .
+      - persist_to_workspace:
+          root: *workspace
+          paths:
+            - .
 
   publish-branch:
     executor: cli/default
@@ -39,24 +40,24 @@ jobs:
     parameters: *parameters
     steps:
       - attach_workspace:
-        at: *workspace
+          at: *workspace
       - run:
-        name: Validate << parameters.orb-path >>
-        command: circleci orb validate << parameters.orb-path >>
+          name: Validate << parameters.orb-path >>
+          command: circleci orb validate << parameters.orb-path >>
       - run:
-        name: Publish << parameters.orb-ref >>
-        command: |
-          # Check if any changes in the orb.yml
-          if [ $(./check-updated.sh << parameters.orb-ref >>) == "true" ]; then
+          name: Publish << parameters.orb-ref >>
+          command: |
+            # Check if any changes in the orb.yml
+            if [ $(./check-updated.sh << parameters.orb-ref >>) == "true" ]; then
 
-            # Publish the orb to branch
-            circleci orb publish \
-              << parameters.orb-path >> \
-              << parameters.orb-ref >>@dev:$CIRCLE_BRANCH \
-              --token $<< parameters.token-variable >>
-          else
-            echo "No changes, skipping orb publish."
-          fi
+              # Publish the orb to branch
+              circleci orb publish \
+                << parameters.orb-path >> \
+                << parameters.orb-ref >>@dev:$CIRCLE_BRANCH \
+                --token $<< parameters.token-variable >>
+            else
+              echo "No changes, skipping orb publish."
+            fi
 
   publish:
     executor: cli/default
@@ -66,26 +67,26 @@ jobs:
       - attach_workspace:
          at: *workspace
       - run:
-        name: Validate << parameters.orb-path >>
-        command: circleci orb validate << parameters.orb-path >>
+          name: Validate << parameters.orb-path >>
+          command: circleci orb validate << parameters.orb-path >>
       - run:
-        name: Publish << parameters.orb-ref >>
-        command: |
-          # Check if any changes in the orb.yml
-          if [ $(./check-updated.sh << parameters.orb-ref >>) == "true" ]; then
-            
-            # Check if version number is updated
-            ./.circleci/check-version << parameters.orb-ref >>
-            
-            # Publish the orb
-            circleci orb publish << parameters.orb-path >> <<
-            parameters.orb-ref >>@$(cat version.txt)
-            <<# parameters.token-variable >>
-              --token $<< parameters.token-variable >>
-            <</ parameters.token-variable >>
-          else
-            echo "No changes, skipping orb publish."
-          fi
+          name: Publish << parameters.orb-ref >>
+          command: |
+            # Check if any changes in the orb.yml
+            if [ $(./check-updated.sh << parameters.orb-ref >>) == "true" ]; then
+              
+              # Check if version number is updated
+              ./.circleci/check-version << parameters.orb-ref >>
+              
+              # Publish the orb
+              circleci orb publish << parameters.orb-path >> <<
+              parameters.orb-ref >>@$(cat version.txt)
+              <<# parameters.token-variable >>
+                --token $<< parameters.token-variable >>
+              <</ parameters.token-variable >>
+            else
+              echo "No changes, skipping orb publish."
+            fi
 
 workflows:
   publish:
