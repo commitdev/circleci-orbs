@@ -4,7 +4,7 @@ orbs:
   cli: circleci/circleci-cli@0.1.6
 
 variables:
-  - &workspace /home/commitdev/
+  - &workspace /tmp/commitdev/
 
 params: &parameters
   orb-path:
