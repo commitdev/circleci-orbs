@@ -48,7 +48,7 @@ jobs:
           name: Publish << parameters.orb-ref >>
           command: |
             # Check if any changes in the orb.yml
-            if [ $(./check-updated.sh << parameters.orb-ref >>) == "true" ]; then
+            if [ $(./.circleci/check-updated.sh << parameters.orb-ref >>) == "true" ]; then
 
               # Publish the orb to branch
               circleci orb publish \
@@ -73,7 +73,7 @@ jobs:
           name: Publish << parameters.orb-ref >>
           command: |
             # Check if any changes in the orb.yml
-            if [ $(./check-updated.sh << parameters.orb-ref >>) == "true" ]; then
+            if [ $(./.circleci/check-updated.sh << parameters.orb-ref >>) == "true" ]; then
               
               # Check if version number is updated
               ./.circleci/check-version << parameters.orb-ref >>
