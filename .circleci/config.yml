@@ -47,6 +47,9 @@ jobs:
       - run:
           name: Publish << parameters.orb-ref >>
           command: |
+            # Create namespace if needed
+            ./.circleci/check-version << parameters.orb-ref >>
+
             # Publish the orb to branch
             circleci orb publish \
               << parameters.orb-path >> \
