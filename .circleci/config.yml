@@ -91,10 +91,13 @@ jobs:
 workflows:
   publish:
     jobs:
+      - checkout
       - publish-branch:
           name: Git Dir Branch
           orb-path: src/commitdev/git-dir/orb.yml
           orb-ref: commitdev/git-dir
+          requires:
+            - checkout
           filters:
             branches:
               ignore: master
@@ -102,6 +105,8 @@ workflows:
           name: Git Dir
           orb-path: src/commitdev/git-dir/orb.yml
           orb-ref: commitdev/git-dir
+          requires:
+            - checkout
           filters:
             branches:
               only: master
@@ -109,6 +114,8 @@ workflows:
           name: Slack Message Branch
           orb-path: src/commitdev/slack-message/orb.yml
           orb-ref: commitdev/slack-message
+          requires:
+            - checkout
           filters:
             branches:
               ignore: master
@@ -116,6 +123,8 @@ workflows:
           name: Slack Message
           orb-path: src/commitdev/slack-message/orb.yml
           orb-ref: commitdev/slack-message
+          requires:
+            - checkout
           filters:
             branches:
               only: master
@@ -123,6 +132,8 @@ workflows:
           name: Version Tag Branch
           orb-path: src/commitdev/version-tag/orb.yml
           orb-ref: commitdev/version-tag
+          requires:
+            - checkout
           filters:
             branches:
               ignore: master
@@ -130,6 +141,8 @@ workflows:
           name: Version Tag
           orb-path: src/commitdev/version-tag/orb.yml
           orb-ref: commitdev/version-tag
+          requires:
+            - checkout
           filters:
             branches:
               only: master
