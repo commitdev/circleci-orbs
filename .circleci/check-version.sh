@@ -3,7 +3,7 @@
 # Checks if your orb has a new version number or if it's a duplicate of the latest.
 ORB_REF=$1
 
-ORB_DATA=$(circleci orb info "$ORB_REF" 2>/dev/null || circleci orb create "$ORB_REF")
+ORB_DATA=$(circleci orb info "$ORB_REF" 2>/dev/null || circleci orb create "$ORB_REF" --token "$CIRCLECI_DEV_API_TOKEN")
 LATEST=$( echo "$ORB_DATA" | grep -E 'Latest: .*@([0-9.]+)' | cut -d @ -f 2 )
 VERSION=$(cat "src/$ORB_REF/version.txt")
 

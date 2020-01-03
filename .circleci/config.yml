@@ -10,14 +10,6 @@ params: &parameters
   orb-ref:
     description: A versionless orb-ref in the form <namespace>/<orb-name>
     type: string
-  token-variable:
-    default: CIRCLECI_DEV_API_TOKEN
-    description: |
-      Name of env var containing your token. Pass this as a raw string such as
-      ORB_PUBLISHING_TOKEN. Do not paste the actual token into your
-      configuration. If omitted it's assumed the CLI has already been setup with
-      a valid token.
-    type: env_var_name
 
 jobs:
   checkout:
@@ -50,7 +42,7 @@ jobs:
             circleci orb publish \
               src/<< parameters.orb-ref >>/orb.yml \
               << parameters.orb-ref >>@dev:$CIRCLE_BRANCH \
-              --token $<< parameters.token-variable >>
+              --token $CIRCLECI_DEV_API_TOKEN
 
   publish:
     executor: cli/default
@@ -69,7 +61,7 @@ jobs:
               circleci orb publish \
                 src/<< parameters.orb-ref >>/orb.yml \
                 << parameters.orb-ref >>@$(cat src/<< parameters.orb-ref >>/version.txt) \
-                --token $<< parameters.token-variable >>
+                --token $CIRCLECI_DEV_API_TOKEN
             else
               echo "No changes, skipping orb publish."
             fi
