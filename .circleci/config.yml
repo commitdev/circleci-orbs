@@ -1,20 +1,120 @@
 version: 2.1
 orbs:
   orb-tools: circleci/orb-tools@2.0.0
+  cli: circleci/circleci-cli@0.1.6
+
+variables:
+  - &workspace /tmp/commitdev/
+
+params: &parameters
+  orb-ref:
+    description: A versionless orb-ref in the form <namespace>/<orb-name>
+    type: string
+
+jobs:
+  checkout:
+    executor: cli/default
+    working_directory: *workspace
+    steps:
+      - checkout
+      - persist_to_workspace:
+          root: *workspace
+          paths:
+            - .
+
+  publish-branch:
+    executor: cli/default
+    working_directory: *workspace
+    parameters: *parameters
+    steps:
+      - attach_workspace:
+          at: *workspace
+      - run:
+          name: Validate src/<< parameters.orb-ref >>/orb.yml
+          command: circleci orb validate src/<< parameters.orb-ref >>/orb.yml
+      - run:
+          name: Publish << parameters.orb-ref >>
+          command: |
+            # Create namespace if needed
+            ./.circleci/check-version.sh << parameters.orb-ref >>
+
+            # Publish the orb to branch
+            circleci orb publish \
+              src/<< parameters.orb-ref >>/orb.yml \
+              << parameters.orb-ref >>@dev:$CIRCLE_BRANCH \
+              --token $CIRCLECI_DEV_API_TOKEN
+
+  publish:
+    executor: cli/default
+    working_directory: *workspace
+    parameters: *parameters
+    steps:
+      - attach_workspace:
+         at: *workspace
+      - run:
+          name: Validate src/<< parameters.orb-ref >>/orb.yml
+          command: circleci orb validate src/<< parameters.orb-ref >>/orb.yml
+      - run:
+          name: Publish << parameters.orb-ref >>
+          command: |
+            if [ $(./.circleci/check-version.sh << parameters.orb-ref >>) == "updated" ]; then
+              circleci orb publish \
+                src/<< parameters.orb-ref >>/orb.yml \
+                << parameters.orb-ref >>@$(cat src/<< parameters.orb-ref >>/version.txt) \
+                --token $CIRCLECI_DEV_API_TOKEN
+            else
+              echo "No changes, skipping orb publish."
+            fi
 
 workflows:
   publish:
     jobs:
-      - orb-tools/publish:
-          orb-path: src/commit/orb.yml
-          orb-ref: commitdev/commit@dev:$CIRCLE_BRANCH
-          publish-token-variable: "$CIRCLECI_DEV_API_TOKEN"
-          validate: true
-      - orb-tools/increment:
-          orb-path: src/commit/orb.yml
-          orb-ref: commitdev/commit
-          publish-token-variable: "$CIRCLECI_DEV_API_TOKEN"
-          segment: patch # Change this for major/minor/patch releases.
+      - checkout
+      - publish-branch:
+          name: Git Dir Branch
+          orb-ref: commitdev/git-dir
+          requires:
+            - checkout
+          filters:
+            branches:
+              ignore: master
+      - publish:
+          name: Git Dir
+          orb-ref: commitdev/git-dir
+          requires:
+            - checkout
+          filters:
+            branches:
+              only: master
+      - publish-branch:
+          name: Slack Message Branch
+          orb-ref: commitdev/slack-message
+          requires:
+            - checkout
+          filters:
+            branches:
+              ignore: master
+      - publish:
+          name: Slack Message
+          orb-ref: commitdev/slack-message
+          requires:
+            - checkout
+          filters:
+            branches:
+              only: master
+      - publish-branch:
+          name: Version Tag Branch
+          orb-ref: commitdev/version-tag
+          requires:
+            - checkout
+          filters:
+            branches:
+              ignore: master
+      - publish:
+          name: Version Tag
+          orb-ref: commitdev/version-tag
+          requires:
+            - checkout
           filters:
             branches:
               only: master

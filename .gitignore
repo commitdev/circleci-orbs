@@ -1,0 +1,2 @@
+# Ignore all .env to keep secrets from being committed accidentally.
+**/.env
