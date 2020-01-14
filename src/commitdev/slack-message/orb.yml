@@ -92,19 +92,21 @@ commands:
           SUCCESS=$(echo "$LOOKUP_RESULT" | jq ".ok")
           if [[ "$SUCCESS" == "true" && "$CIRCLE_BRANCH" != "<< parameters.default_branch >>" ]]; then
             USER_ID=$(echo "$LOOKUP_RESULT" | jq -r ".user.id")
-            CHANNEL=$(echo "$LOOKUP_RESULT" | jq -r ".user.name")
-            MENTION="<@${USER_ID}> "
+            CHANNEL=$USER_ID
+            NAME=$(echo "$LOOKUP_RESULT" | jq -r ".user.name")
+            MENTION="<@${USER_ID}>"
           else
             echo "Couldn't find user with the email \"${AUTHOR_EMAIL}\". Your email in Github must match your email in slack."
             CHANNEL=<< parameters.fallback-channel >>
+            NAME=$CHANNEL
           fi
 
           if [[ "$CHANNEL" != "" ]]; then
-            echo "Sending message to ${CHANNEL}"
+            echo "Sending message to ${NAME}"
             SEND_RESULT=$(curl -s -X POST -H 'Content-type: application/x-www-form-urlencoded' --data \
             "token=${SLACK_BOT_TOKEN}&\
             channel=${CHANNEL}&\
-            text=${MENTION}<< parameters.message >>&\
+            text=${MENTION} << parameters.message >>&\
             attachments=[{\
                 \"fallback\": \"Your CircleCI build ${BUILD_RESULT}. ${CIRCLE_BUILD_URL}\", \
                 \"author_name\": \"${CIRCLE_USERNAME}\", \
