@@ -3,14 +3,19 @@
 version: 2.1
 
 commands:
-  version-tag:
+  set:
     parameters:
       format:
         default: 'number-tag'
         description: |
-          Create a more human readable version tag for your builds. Place this step after checkout on
-          your job and it will create an environment variable $VERSION_TAG to use in later steps.
-          Often used to tag docker images or create github release.
+          Create a more human readable version tag for your builds if not present.
+          
+          Place this step after checkout on your job and it will create an environment variable
+          $VERSION_TAG to use in later steps. If a tag is already created this will set the tag
+          for the current step. Often used to tag docker images or create github release.
+
+          Version is persisted between steps using the versionfile mounted into the workspace.
+          Defaults to version.txt, but you can give it a custom name if it conflicts with a file in your repo.
 
           Options are ['number-tag', 'tag-only', 'number-only']
           'number-tag: 152-afed12g'

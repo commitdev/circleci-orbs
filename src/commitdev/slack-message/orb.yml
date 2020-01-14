@@ -3,7 +3,7 @@
 version: 2.1
 
 commands:
-  slack-message:
+  notify:
     description: | 
       Sends a message to the user who's build it is, if possible. Github email must match Slack email for it to work.
       Requires a slack bot with access to the "user:read.email" bot token scope.
