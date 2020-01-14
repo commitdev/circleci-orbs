@@ -96,7 +96,7 @@ commands:
             MENTION="<@${USER_ID}> "
           else
             echo "Couldn't find user with the email \"${AUTHOR_EMAIL}\". Your email in Github must match your email in slack."
-            CHANNEL=<< parameters.channel >>
+            CHANNEL=<< parameters.fallback-channel >>
           fi
 
           if [[ "$CHANNEL" != "" ]]; then
