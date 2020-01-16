@@ -60,18 +60,16 @@ commands:
               echo "Saving version-tag to << parameters.workspace >>/<< parameters.versionfile >>"
               echo "$VERSION_TAG" >> << parameters.workspace >>/<< parameters.versionfile >>
               echo "export VERSION_TAG=\"$CIRCLE_BUILD_NUM-$COMMIT_TAG\"" >> $BASH_ENV
+
+              echo "Created version tag: VERSION_TAG=${VERSION_TAG}
+              This will be available in all steps in this job,
+              but not in other jobs as part of the workflow. 
+              To use in other jobs, add the version-tag/get command in them."
             fi
       - persist_to_workspace:
           root: << parameters.workspace >>
           paths:
             - << parameters.versionfile >>
-      - run:
-          name: Print Version Tag
-          command: |
-            echo "Created version tag: VERSION_TAG=${VERSION_TAG}
-            This will be available in all steps in this job,
-            but not in other jobs as part of the workflow. 
-            To use in other jobs, add the version-tag command to them."
 
   get:
     parameters:
@@ -89,14 +87,22 @@ commands:
           and cat the contents of the file where you need it. E.g. export VERSION_TAG=$(cat version.txt)
         type: string
     steps:
+      - attach_workspace:
+          at: << parameters.workspace >>
       - run:
           name: Get Version Tag
           command: |
             if [ -f << parameters.workspace >>/<< parameters.versionfile >> ]; then
               echo "<< parameters.versionfile >> already present in your workspace, setting enviroment variable."
               echo "export VERSION_TAG=$(cat << parameters.workspace >>/<< parameters.versionfile >>)" >> $BASH_ENV
+
+              echo "Got version tag: VERSION_TAG=${VERSION_TAG}
+              This will be available in all steps in this job,
+              but not in other jobs as part of the workflow. 
+              To use in other jobs, add the version-tag/get command in them."
             else
               echo "Unabled to file version tag in << parameters.workspace >>/<< parameters.versionfile >>, run the create command first."
+              exit 1
             fi
 description: |
   Common commands used by Commit in our build pipelines. See this orb's source: https://github.com/commitdev/circleci-orbs
