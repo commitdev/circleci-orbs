@@ -102,7 +102,7 @@ commands:
           fi
 
           if [[ "$CHANNEL" != "" ]]; then
-            echo "Sending message to ${NAME}"
+            echo "Sending message to ${NAME}($CHANNEL)"
             SEND_RESULT=$(curl -s -X POST -H 'Content-type: application/x-www-form-urlencoded' --data \
             "token=${SLACK_BOT_TOKEN}&\
             channel=${CHANNEL}&\
