@@ -95,8 +95,7 @@ commands:
             if [ -f << parameters.workspace >>/<< parameters.versionfile >> ]; then
               echo "<< parameters.versionfile >> already present in your workspace, setting enviroment variable."
               echo "export VERSION_TAG=$(cat << parameters.workspace >>/<< parameters.versionfile >>)" >> $BASH_ENV
-
-              echo "Got version tag: VERSION_TAG=${VERSION_TAG}
+              echo "Got version tag: VERSION_TAG=$(cat << parameters.workspace >>/<< parameters.versionfile >>)
               This will be available in all steps in this job,
               but not in other jobs as part of the workflow. 
               To use in other jobs, add the version-tag/get command in them."
