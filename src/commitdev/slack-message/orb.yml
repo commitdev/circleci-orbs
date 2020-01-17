@@ -105,7 +105,7 @@ commands:
             CHANNEL=<< parameters.fallback-channel >>
             NAME=$CHANNEL
           fi
-          
+
           if [[ "<< parameters.fail_only >>" == true && "$BUILD_RESULT" == "success" ]]; then
             echo "Build passing and fail_only is set. No message sent."
           else
