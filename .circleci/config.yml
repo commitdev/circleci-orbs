@@ -76,6 +76,14 @@ workflows:
     jobs:
       - checkout
       - publish-branch:
+          name: Approvals Branch
+          orb-ref: commitdev/approvals
+          requires:
+            - checkout
+          filters:
+            branches:
+              ignore: master
+      - publish-branch:
           name: Git Dir Branch
           orb-ref: commitdev/git-dir
           requires:
