@@ -66,6 +66,11 @@ jobs:
               echo "No changes, skipping orb publish."
             fi
 
+  test_approvals:
+    executor: cli/default
+    steps:
+      - approvals/get
+
 workflows:
   publish:
     jobs:

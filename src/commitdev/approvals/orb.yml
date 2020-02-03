@@ -1,0 +1,60 @@
+# This code is licensed from CircleCI to the user under the MIT license. See
+# https://circleci.com/orbs/registry/licensing for details.
+version: 2.1
+
+commands:
+  get:
+    parameters:
+      api-key:
+        default: '$CIRCLECI_API_KEY'
+        description: |
+          Get the name and login for the account that approved the current workflow.
+        type: string
+      output:
+        default: WORKFLOW_APPROVER
+        description: |
+          Name of the environment variable to save the approver name/login to. This variable will be available in
+          the job that runs this step, to use across mutliple jobs, call this step in each job.
+        type: string
+    steps:
+      - run:
+          name: Get Approver
+          command: |
+            if [ -z "<< parameters.api-key >>" ]; then
+              echo "NO API KEY SET"
+              echo "Please input your CIRCLECI_API_KEY value either in the settings for this project, or as a parameter for this orb."
+              echo
+              echo "For information on creating a ,token, see the documentation: https://circleci.com/account/api"
+              exit 1
+            fi
+
+            WORKFLOW_JOBS=$(curl -H "Circle-Token: << parameters.api-key >>" "https://circleci.com/api/v2/workflow/${CIRCLE_WORKFLOW_ID}/job")
+
+            CIRCLE_WORKFLOW_JOB_ID="fbb93740-5573-47dd-81f7-28bc8c8b7ea7"
+            CURRENT_JOB_DEPENDENCIES=$(echo "$WORKFLOW_JOBS" | jq -cr ".items[] | select(.id == \"$CIRCLE_WORKFLOW_JOB_ID\") | .dependencies[]")
+            APPROVAL_JOBS=$(echo "$WORKFLOW_JOBS" | jq -cr '.items[] | select(.type == "approval")')
+
+            for JOB in $APPROVAL_JOBS
+            do
+              JOB_ID=$(echo "$JOB" | jq -r .id)
+              for DEPENDENCY_ID in $CURRENT_JOB_DEPENDENCIES
+              do
+                if [ "$DEPENDENCY_ID" = "$JOB_ID" ]; then
+                  APPROVED_BY=$(echo "$JOB" | jq -r .approved_by)
+                fi
+              done
+            done
+
+            APPROVER=$(curl -H "Circle-Token: << parameters.api-key >>" "https://circleci.com/api/v2/user/${APPROVED_BY}")
+
+            APPROVER_NAME=$(echo "$APPROVER" | jq -r '"\(.name) (\(.login))"')
+            echo "Approver: $APPROVER_NAME"
+
+            echo "export << parameters.output >>=\"$APPROVER_NAME\"" >> $BASH_ENV
+      - run:
+          name: Print Approver
+          command: |
+            Pipeline was approved by $<< parameters.output >>
+
+description: |
+  Get information around the users that approve manual approval steps. See this orb's source: https://github.com/commitdev/circleci-orbs
