@@ -53,7 +53,7 @@ commands:
       - run:
           name: Print Approver
           command: |
-            Pipeline was approved by $<< parameters.output >>
+            echo "Pipeline was approved by $<< parameters.output >>"
 
 description: |
   Get information around the users that approve manual approval steps. See this orb's source: https://github.com/commitdev/circleci-orbs
