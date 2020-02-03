@@ -66,11 +66,6 @@ jobs:
               echo "No changes, skipping orb publish."
             fi
 
-  test_approvals:
-    executor: cli/default
-    steps:
-      - approvals/get
-
 workflows:
   publish:
     jobs:
@@ -83,6 +78,14 @@ workflows:
           filters:
             branches:
               ignore: master
+      - publish:
+          name: Approvals
+          orb-ref: commitdev/approvals
+          requires:
+            - checkout
+          filters:
+            branches:
+              only: master
       - publish-branch:
           name: Git Dir Branch
           orb-ref: commitdev/git-dir
