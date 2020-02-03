@@ -56,8 +56,6 @@
 # }'
 
 WORKFLOW_JOBS=$(curl -H "Circle-Token: $CIRCLECI_API_KEY" "https://circleci.com/api/v2/workflow/${CIRCLE_WORKFLOW_ID}/job")
-
-CIRCLE_WORKFLOW_JOB_ID="fbb93740-5573-47dd-81f7-28bc8c8b7ea7"
 CURRENT_JOB_DEPENDENCIES=$(echo "$WORKFLOW_JOBS" | jq -cr ".items[] | select(.id == \"$CIRCLE_WORKFLOW_JOB_ID\") | .dependencies[]")
 APPROVAL_JOBS=$(echo "$WORKFLOW_JOBS" | jq -cr '.items[] | select(.type == "approval")')
 
