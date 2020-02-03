@@ -56,4 +56,8 @@ commands:
             echo "Pipeline was approved by $<< parameters.output >>"
 
 description: |
-  Get information around the users that approve manual approval steps. See this orb's source: https://github.com/commitdev/circleci-orbs
+  Get information around the users that approve manual approval steps. This must be run in the job directly down-stream from the approval 
+  job so we can get the approval job without travering the whole workflow. For jobs with multiple approval dependencies, this will only 
+  get the first one.
+
+  See this orb's source: https://github.com/commitdev/circleci-orbs
