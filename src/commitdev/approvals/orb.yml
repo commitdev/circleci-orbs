@@ -16,6 +16,11 @@ commands:
           Name of the environment variable to save the approver name/login to. This variable will be available in
           the job that runs this step, to use across mutliple jobs, call this step in each job.
         type: string
+      fail_on_not_found:
+        default: false
+        description: |
+          Enable this if you want to fail the job when an Approver is not found.
+        type: boolean
     steps:
       - run:
           name: Get Approver
@@ -46,7 +51,9 @@ commands:
 
             if [ "$APPROVED_BY" = "" ]; then
               echo "Could not find linked approval job. Make sure you run this step in a job that depends on an approval job."
+              <<# parameters.fail_on_not_found >>
               exit 1
+              <</ parameters.fail_on_not_found >>
             fi
 
             APPROVER=$(curl -s -H "Circle-Token: << parameters.api-key >>" "https://circleci.com/api/v2/user/${APPROVED_BY}")
