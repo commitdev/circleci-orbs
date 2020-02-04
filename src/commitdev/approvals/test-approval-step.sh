@@ -1,5 +1,17 @@
 #!/bin/sh
 
+# To run, create a .env file with the below variables (no quotes):
+# CIRCLECI_API_KEY=xoxb-12345-abcd
+#
+# Then copy the CircleCI environment variables from the 'Using build environment variables' block in your job. E.g.:
+# BASH_ENV=/tmp/.bash_env-5e012ebafe8b924337b7041c-0-build
+# CIRCLE_BRANCH=my-test-branch
+# CIRCLE_BUILD_NUM=14428
+# ...
+#
+# To run the tests use:
+#   export $(grep -v '^#' .env | xargs -d '\n') >/dev/null && ./test-approval-step.sh
+
 # Test Data
 
 # WORKFLOW_JOBS='{
@@ -69,6 +81,11 @@ do
     fi
   done
 done
+
+if [ "$APPROVED_BY" = "" ]; then
+  echo "Could not find linked approval job. Make sure you run this step in a job that depends on an approval job."
+  exit 1
+fi
 
 APPROVER=$(curl -H "Circle-Token: $CIRCLECI_API_KEY" "https://circleci.com/api/v2/user/${APPROVED_BY}")
 

@@ -44,6 +44,11 @@ commands:
               done
             done
 
+            if [ "$APPROVED_BY" = "" ]; then
+              echo "Could not find linked approval job. Make sure you run this step in a job that depends on an approval job."
+              exit 1
+            fi
+
             APPROVER=$(curl -s -H "Circle-Token: << parameters.api-key >>" "https://circleci.com/api/v2/user/${APPROVED_BY}")
             APPROVER_NAME=$(echo "$APPROVER" | jq -r '"\(.name) (\(.login))"')
             echo "export << parameters.output >>=\"$APPROVER_NAME\"" >> $BASH_ENV
