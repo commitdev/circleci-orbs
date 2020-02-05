@@ -67,7 +67,7 @@
 #   } ]
 # }'
 
-WORKFLOW_JOBS=$(curl -H "Circle-Token: $CIRCLECI_API_KEY" "https://circleci.com/api/v2/workflow/${CIRCLE_WORKFLOW_ID}/job")
+WORKFLOW_JOBS=$(curl -s -H "Circle-Token: $CIRCLECI_API_KEY" "https://circleci.com/api/v2/workflow/${CIRCLE_WORKFLOW_ID}/job")
 CURRENT_JOB_DEPENDENCIES=$(echo "$WORKFLOW_JOBS" | jq -cr ".items[] | select(.id == \"$CIRCLE_WORKFLOW_JOB_ID\") | .dependencies[]")
 APPROVAL_JOBS=$(echo "$WORKFLOW_JOBS" | jq -cr '.items[] | select(.type == "approval")')
 
@@ -87,7 +87,7 @@ if [ "$APPROVED_BY" = "" ]; then
   exit 1
 fi
 
-APPROVER=$(curl -H "Circle-Token: $CIRCLECI_API_KEY" "https://circleci.com/api/v2/user/${APPROVED_BY}")
+APPROVER=$(curl -s -H "Circle-Token: $CIRCLECI_API_KEY" "https://circleci.com/api/v2/user/${APPROVED_BY}")
 
 APPROVER_NAME=$(echo "$APPROVER" | jq -r '"\(.name) (\(.login))"')
 echo "Approver: $APPROVER_NAME"

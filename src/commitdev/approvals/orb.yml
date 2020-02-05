@@ -59,7 +59,7 @@ commands:
             APPROVER=$(curl -s -H "Circle-Token: << parameters.api-key >>" "https://circleci.com/api/v2/user/${APPROVED_BY}")
             APPROVER_NAME=$(echo "$APPROVER" | jq -r '"\(.name) (\(.login))"')
             echo "export << parameters.output >>=\"$APPROVER_NAME\"" >> $BASH_ENV
-            echo "Pipeline was approved by $<< parameters.output >>"
+            echo "Pipeline was approved by $APPROVER_NAME"
 
 description: |
   Get information around the users that approve manual approval steps. This must be run in the job directly down-stream from the approval 
